@@ -1,0 +1,57 @@
+import math
+from heapq import heappop, heappush
+
+# Função para calcular a distância euclidiana entre duas coordenadas
+def calculate_distance(coord1, coord2):
+    return math.sqrt((coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2)
+
+# Definindo a lista de vértices e arestas com os pesos
+vertices = []
+edges = []
+
+# Lendo os dados e preenchendo as listas de vértices e arestas
+with open("dados.txt", "r") as file:
+    next(file)  # Ignorar a linha de cabeçalho
+    for line in file:
+        city, state, long, lat = line.strip().split("\t")
+        vertices.append((city, float(long), float(lat)))
+
+# Criando arestas entre todos os pares de vértices
+for i in range(len(vertices)):
+    for j in range(i + 1, len(vertices)):
+        distance = calculate_distance((vertices[i][1], vertices[i][2]), (vertices[j][1], vertices[j][2]))
+        edges.append((distance, i, j))
+
+# Ordenando as arestas pelo peso
+edges.sort()
+
+# Aplicando o algoritmo de Kruskal
+parent = list(range(len(vertices)))
+
+def find(parent, i):
+    if parent[i] != i:
+        parent[i] = find(parent, parent[i])
+    return parent[i]
+
+def union(parent, rank, x, y):
+    x_root = find(parent, x)
+    y_root = find(parent, y)
+
+    if x_root != y_root:
+        parent[y_root] = x_root
+
+minimum_spanning_tree = []
+
+for edge in edges:
+    weight, u, v = edge
+    if find(parent, u) != find(parent, v):
+        union(parent, [], u, v)
+        minimum_spanning_tree.append(edge)
+
+# Imprimindo a Árvore Geradora Mínima
+print("Árvore Geradora Mínima:")
+for edge in minimum_spanning_tree:
+    weight, u, v = edge
+    city_u, _, _ = vertices[u]
+    city_v, _, _ = vertices[v]
+    print(f"{city_u} - {city_v}: {weight:.4f}")
